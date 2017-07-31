@@ -34,7 +34,7 @@ namespace XmlDocumentMerger
                 partialxmldocument.LoadXml(file);
 
                 // What this monstrosity does:
-                // - Get the first <Defines> tag in the xmldefinesdocument
+                // - Get the first <root_tag> tag in the xmldefinesdocument
                 // - AppendChild that is
                 //   - Imported Node that is
                 //     - The FirstChild of the first <Defines> in xmldocument (.ImportNode does not support ChildNodes).
