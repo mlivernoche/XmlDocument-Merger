@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+
+// Targets .NET Framework 4.5
 
 namespace XmlDocumentMerger
 {
@@ -60,8 +62,7 @@ namespace XmlDocumentMerger
         /// <returns>An XmlDocument object with all files combined as child nodes of root_tag.</returns>
         public static async Task<XmlDocument> CombineXmlDocuments(string root_tag, List<Task<string>> xmlfiles)
         {
-            var results = await Task.WhenAll(xmlfiles.ToArray());
-            return CombineXmlDocuments(root_tag, results.ToList());
+            return CombineXmlDocuments(root_tag, (await Task.WhenAll(xmlfiles.ToArray())).ToList());
         }
 
         /// <summary>
