@@ -34,4 +34,4 @@ The difference being that the second one supports async/await and returns Task\<
 
 Limitations:
  - The XML Documents you are merging MUST have the same root element.
- - It will only do the first child tag of the root tag (because XML elements have to be imported, and .ImportNode only supports one XmlNode).
+ - It will only do the first child tag of the root tag (because XML elements have to be imported, and .ImportNode only supports one XmlNode). It will, however, import all of the child tags of the first child of the root tag.
