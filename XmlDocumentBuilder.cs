@@ -39,7 +39,7 @@ namespace XmlDocumentMerger
                 //   - Imported Node that is
                 //     - The FirstChild of the first <Defines> in xmldocument (.ImportNode does not support ChildNodes).
                 xmldefinesdocument
-                    .GetElementsByTagName("Defines")
+                    .GetElementsByTagName(root_tag)
                     .Item(0)
                     .AppendChild(
                         xmldefinesdocument
