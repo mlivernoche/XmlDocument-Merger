@@ -27,8 +27,8 @@ To create this:
 ```
 
 There are two methods:
-- XmlDocument CombineXmlDocuments(string root_tag, List<string> xmlfiles)
-- async Task<XmlDocument> CombineXmlDocuments(string root_tag, List<Task<string>> xmlfiles)
+- XmlDocument CombineXmlDocuments(string root_tag, List\<string\> xmlfiles)
+- async Task<XmlDocument> CombineXmlDocuments(string root_tag, List\<Task\<string\>\> xmlfiles)
 
 The difference being that the second one supports async/await and returns Task\<XmlDocument\>, and the first one doesn't.
 
