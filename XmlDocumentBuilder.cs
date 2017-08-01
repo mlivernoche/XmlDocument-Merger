@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,13 +11,36 @@ namespace XmlDocumentMerger
 {
     public static class XmlDocumentBuilder
     {
+        public static XmlDocument CombineXmlDocuments(List<string> xmlfiles)
+        {
+            var xmldefinesdocument = new XmlDocument();
+            xmldefinesdocument.InsertBefore(
+                xmldefinesdocument.CreateXmlDeclaration("1.0", "utf-8", null),
+                xmldefinesdocument.DocumentElement
+            );
+            
+            foreach (var file in xmlfiles)
+            {
+                var partialxmldocument = new XmlDocument();
+                partialxmldocument.LoadXml(file);
+                xmldefinesdocument.DocumentElement.AppendChild(xmldefinesdocument.ImportNode(partialxmldocument.DocumentElement, true));
+            }
+
+            return xmldefinesdocument;
+        }
+
+        public static async Task<XmlDocument> CombineXmlDocuments(List<Task<string>> xmlfiles)
+        {
+            return CombineXmlDocuments((await Task.WhenAll(xmlfiles.ToArray())).ToList());
+        }
+
         /// <summary>
         /// Combine an arbitrary number of XML documents that all have the same root tag.
         /// </summary>
         /// <param name="root_tag">The root tag shared among the XML documents.</param>
         /// <param name="xmlfiles">A list of string objects that are the XML file contents.</param>
         /// <returns>An XmlDocument object with all files combined as child nodes of root_tag.</returns>
-        public static XmlDocument CombineXmlDocuments(string root_tag, List<string> xmlfiles)
+        public static XmlDocument CombineXmlDocumentsByRoot(string root_tag, List<string> xmlfiles)
         {
             var xmldefinesdocument = new XmlDocument();
             xmldefinesdocument.InsertBefore(
@@ -34,10 +56,10 @@ namespace XmlDocumentMerger
                 partialxmldocument.LoadXml(file);
 
                 // What this monstrosity does:
-                // - Get the first <root_tag> tag in the xmldefinesdocument
+                // - Get the first <Defines> tag in the xmldefinesdocument
                 // - AppendChild that is
                 //   - Imported Node that is
-                //     - The FirstChild of the first <root_tag> in xmldocument (.ImportNode does not support ChildNodes).
+                //     - The FirstChild of the first <Defines> in xmldocument (.ImportNode does not support ChildNodes).
                 xmldefinesdocument
                     .GetElementsByTagName(root_tag)
                     .Item(0)
@@ -60,9 +82,9 @@ namespace XmlDocumentMerger
         /// <param name="root_tag">The root tag shared among the XML documents.</param>
         /// <param name="xmlfiles">A list of Task<string> objects that are the XML file contents.</param>
         /// <returns>An XmlDocument object with all files combined as child nodes of root_tag.</returns>
-        public static async Task<XmlDocument> CombineXmlDocuments(string root_tag, List<Task<string>> xmlfiles)
+        public static async Task<XmlDocument> CombineXmlDocumentsByRoot(string root_tag, List<Task<string>> xmlfiles)
         {
-            return CombineXmlDocuments(root_tag, (await Task.WhenAll(xmlfiles.ToArray())).ToList());
+            return CombineXmlDocumentsByRoot(root_tag, (await Task.WhenAll(xmlfiles.ToArray())).ToList());
         }
 
         /// <summary>
@@ -74,11 +96,9 @@ namespace XmlDocumentMerger
         public static T DeserializeXmlString<T>(string xmlstring)
         {
             var xmldefines_serializer = new XmlSerializer(typeof(T));
+            using (var definesreader = new StringReader(xmlstring))
             {
-                using (var definesreader = new StringReader(xmlstring))
-                {
-                    return (T)xmldefines_serializer.Deserialize(definesreader);
-                }
+                return (T)xmldefines_serializer.Deserialize(definesreader);
             }
         }
     }
