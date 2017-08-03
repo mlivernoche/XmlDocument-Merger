@@ -1,5 +1,5 @@
 # XmlDocument-Merger
-Combines XmlDocument objects with the same root element.
+Combines XmlDocument objects with the same root element. Targets .NET Framework 4.5.
 
 This will take something like this:
 
@@ -26,12 +26,9 @@ To create this:
 </Root>
 ```
 
-There are two methods:
-- XmlDocument CombineXmlDocuments(string root_tag, List\<string\> xmlfiles)
-- async Task<XmlDocument> CombineXmlDocuments(string root_tag, List\<Task\<string\>\> xmlfiles)
+There are three methods:
+- XmlDocument CombineXmlDocuments(string root_tag, List\<string\> xmlfiles, XmlDeclaration declaration = null)
+- async Task<XmlDocument> CombineXmlDocuments(string root_tag, List\<Task\<string\>\> xmlfiles, XmlDeclaration declaration = null)
+- async Task<XmlDocument> CombineXmlDocuments(string root_tag, Task\<string\>[] xmlfiles, XmlDeclaration declaration = null)
 
-The difference being that the second one supports async/await and returns Task\<XmlDocument\>, and the first one doesn't.
-
-Limitations:
- - The XML Documents you are merging MUST have the same root element.
- - It will only do the first child tag of the root tag (because XML elements have to be imported, and .ImportNode only supports one XmlNode). It will, however, import all of the child tags of the first child of the root tag.
+The difference being that the second one supports async/await and returns Task\<XmlDocument\>, and the first one doesn't. The third one is an overloaded version that takes an array rather than a list.
