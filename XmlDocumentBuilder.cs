@@ -11,27 +11,48 @@ namespace XmlDocumentMerger
 {
     public static class XmlDocumentBuilder
     {
-        public static XmlDocument CombineXmlDocuments(List<string> xmlfiles)
+        /// <summary>
+        /// Merges the DocumentElement of each XML file into a new XML file.
+        /// </summary>
+        /// <param name="xmlfiles">A list of string objects that are the XML file contents.</param>
+        /// <returns>An XmlDocument object with all files combined as child nodes of root_tag.</returns>
+        public static XmlDocument CombineXmlDocuments(List<string> xmlfiles, XmlDeclaration declaration = null)
         {
-            var xmldefinesdocument = new XmlDocument();
-            xmldefinesdocument.InsertBefore(
-                xmldefinesdocument.CreateXmlDeclaration("1.0", "utf-8", null),
-                xmldefinesdocument.DocumentElement
-            );
-            
+            var xmlmasterdocument = new XmlDocument();
+
+            if (declaration != null)
+            {
+                xmlmasterdocument.InsertBefore(
+                    declaration,
+                    xmlmasterdocument.DocumentElement
+                );
+            }
+            else
+            {
+                xmlmasterdocument.InsertBefore(
+                    xmlmasterdocument.CreateXmlDeclaration("1.0", "utf-8", null),
+                    xmlmasterdocument.DocumentElement
+                );
+            }
+
             foreach (var file in xmlfiles)
             {
                 var partialxmldocument = new XmlDocument();
                 partialxmldocument.LoadXml(file);
-                xmldefinesdocument.DocumentElement.AppendChild(xmldefinesdocument.ImportNode(partialxmldocument.DocumentElement, true));
+                xmlmasterdocument.DocumentElement.AppendChild(xmlmasterdocument.ImportNode(partialxmldocument.DocumentElement, true));
             }
 
-            return xmldefinesdocument;
+            return xmlmasterdocument;
         }
 
         public static async Task<XmlDocument> CombineXmlDocuments(List<Task<string>> xmlfiles)
         {
             return CombineXmlDocuments((await Task.WhenAll(xmlfiles.ToArray())).ToList());
+        }
+
+        public static async Task<XmlDocument> CombineXmlDocuments(Task<string>[] xmlfiles)
+        {
+            return CombineXmlDocuments((await Task.WhenAll(xmlfiles)).ToList());
         }
 
         /// <summary>
@@ -40,14 +61,27 @@ namespace XmlDocumentMerger
         /// <param name="root_tag">The root tag shared among the XML documents.</param>
         /// <param name="xmlfiles">A list of string objects that are the XML file contents.</param>
         /// <returns>An XmlDocument object with all files combined as child nodes of root_tag.</returns>
-        public static XmlDocument CombineXmlDocumentsByRoot(string root_tag, List<string> xmlfiles)
+        public static XmlDocument CombineXmlDocumentsByRoot(string root_tag, List<string> xmlfiles, XmlDeclaration declaration = null)
         {
-            var xmldefinesdocument = new XmlDocument();
-            xmldefinesdocument.InsertBefore(
-                xmldefinesdocument.CreateXmlDeclaration("1.0", "utf-8", null),
-                xmldefinesdocument.DocumentElement
-            );
-            xmldefinesdocument.AppendChild(xmldefinesdocument.CreateElement(root_tag));
+            var xmlmasterdocument = new XmlDocument();
+
+            if (declaration != null)
+            {
+                xmlmasterdocument.InsertBefore(
+                    declaration,
+                    xmlmasterdocument.DocumentElement
+                );
+            }
+            else
+            {
+                xmlmasterdocument.InsertBefore(
+                    xmlmasterdocument.CreateXmlDeclaration("1.0", "utf-8", null),
+                    xmlmasterdocument.DocumentElement
+                );
+            }
+
+            xmlmasterdocument.AppendChild(xmlmasterdocument.CreateElement(root_tag));
+            var xmlmasterrootag = xmlmasterdocument.GetElementsByTagName(root_tag).Item(0);
 
             // Go through each file and append its child to the defines Xml document above.
             foreach (var file in xmlfiles)
@@ -55,25 +89,18 @@ namespace XmlDocumentMerger
                 var partialxmldocument = new XmlDocument();
                 partialxmldocument.LoadXml(file);
 
-                // What this monstrosity does:
-                // - Get the first <Defines> tag in the xmldefinesdocument
-                // - AppendChild that is
-                //   - Imported Node that is
-                //     - The FirstChild of the first <Defines> in xmldocument (.ImportNode does not support ChildNodes).
-                xmldefinesdocument
+                var childnodes = partialxmldocument
                     .GetElementsByTagName(root_tag)
                     .Item(0)
-                    .AppendChild(
-                        xmldefinesdocument
-                            .ImportNode(
-                                partialxmldocument
-                                    .GetElementsByTagName(root_tag)
-                                    .Item(0)
-                                    .FirstChild,
-                                true));
+                    .ChildNodes;
+
+                foreach (XmlNode xmlnode in childnodes)
+                {
+                    xmlmasterrootag.AppendChild(xmlmasterdocument.ImportNode(xmlnode, true));
+                }
             }
 
-            return xmldefinesdocument;
+            return xmlmasterdocument;
         }
 
         /// <summary>
@@ -85,6 +112,17 @@ namespace XmlDocumentMerger
         public static async Task<XmlDocument> CombineXmlDocumentsByRoot(string root_tag, List<Task<string>> xmlfiles)
         {
             return CombineXmlDocumentsByRoot(root_tag, (await Task.WhenAll(xmlfiles.ToArray())).ToList());
+        }
+
+        /// <summary>
+        /// Combine an arbitrary number of XML documents that all have the same root tag. Supports async/await.
+        /// </summary>
+        /// <param name="root_tag">The root tag shared among the XML documents.</param>
+        /// <param name="xmlfiles">An array of Task<string> objects that are the XML file contents.</param>
+        /// <returns>An XmlDocument object with all files combined as child nodes of root_tag.</returns>
+        public static async Task<XmlDocument> CombineXmlDocumentsByRoot(string root_tag, Task<string>[] xmlfiles)
+        {
+            return CombineXmlDocumentsByRoot(root_tag, (await Task.WhenAll(xmlfiles)).ToList());
         }
 
         /// <summary>
