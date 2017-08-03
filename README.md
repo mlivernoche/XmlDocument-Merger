@@ -27,8 +27,10 @@ To create this:
 ```
 
 There are three methods:
-- XmlDocument CombineXmlDocuments(string root_tag, List\<string\> xmlfiles, XmlDeclaration declaration = null)
-- async Task<XmlDocument> CombineXmlDocuments(string root_tag, List\<Task\<string\>\> xmlfiles, XmlDeclaration declaration = null)
-- async Task<XmlDocument> CombineXmlDocuments(string root_tag, Task\<string\>[] xmlfiles, XmlDeclaration declaration = null)
+- XmlDocument CombineXmlDocumentsByRoot(string root_tag, List\<string\> xmlfiles, XmlDeclaration declaration = null)
+- async Task\<XmlDocument\> CombineXmlDocumentsByRoot(string root_tag, List\<Task\<string\>\> xmlfiles, XmlDeclaration declaration = null)
+- async Task\<XmlDocument\> CombineXmlDocumentsByRoot(string root_tag, Task\<string\>[] xmlfiles, XmlDeclaration declaration = null)
 
 The difference being that the second one supports async/await and returns Task\<XmlDocument\>, and the first one doesn't. The third one is an overloaded version that takes an array rather than a list.
+
+There is also another version, CombineXmlDocuments, that simply combines the XML documents by DocumentElement.
